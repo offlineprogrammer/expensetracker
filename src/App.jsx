@@ -27,40 +27,29 @@ export default function App() {
   const [expenses, setExpenses] = useState([]);
 
   useEffect(() => {
-    fetchExpenses();
+    client.models.Expense.observeQuery().subscribe({
+      next: (data) => setExpenses([...data.items]),
+    });
   }, []);
-
-  async function fetchExpenses() {
-    const { data: expenses } = await client.models.Expense.list();
-    console.log(expenses);
-    setExpenses(expenses);
-  }
 
   async function createExpense(event) {
     event.preventDefault();
     const form = new FormData(event.target);
 
-    const { data: newExpense } = await client.models.Expense.create({
+    await client.models.Expense.create({
       name: form.get("name"),
       amount: form.get("amount"),
     });
 
-    console.log(newExpense);
-    fetchExpenses();
     event.target.reset();
   }
 
   async function deleteExpense({ id }) {
     const toBeDeletedExpense = {
-      id: id,
+      id,
     };
 
-    const { data: deletedExpense } = await client.models.Expense.delete(
-      toBeDeletedExpense
-    );
-    console.log(deletedExpense);
-
-    fetchExpenses();
+    await client.models.Expense.delete(toBeDeletedExpense);
   }
 
   return (
